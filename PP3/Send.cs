@@ -1,6 +1,7 @@
 ﻿using System;
 using RabbitMQ.Client;
 using System.Text;
+using System.Threading;
 
 namespace PP3
 {
@@ -30,6 +31,7 @@ namespace PP3
             }
             //Console.WriteLine(" Press [enter] to exit.");
             //Console.ReadLine();
+            Thread.Sleep(500);
         }
     }
 }

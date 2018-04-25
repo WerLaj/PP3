@@ -61,10 +61,10 @@ namespace PP3
                 musiciansThreads[i].Start();
             }
 
-            Send s = new Send();
+            /*Send s = new Send();
             s.SendMessage("hello", "Hello world!!!!!!!!");
             Receive r = new Receive();
-            r.ReceiveMessage("hello");
+            r.ReceiveMessage("hello");*/
 
             Console.ReadKey();
         }
