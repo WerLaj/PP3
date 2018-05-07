@@ -14,7 +14,8 @@ namespace PP3
         int numberOfNeighbors;
         int[,] neighbors;
         int[] position;
-        String[] queue;
+        String[] sendingQueue;
+        String[] receivingQueue;
 
 
         public Musician(int n, int[,] _neighbors, int[] pos)
@@ -25,7 +26,8 @@ namespace PP3
             numberOfNeighbors = n;
             neighbors = _neighbors;
             position = pos;
-            queue = new String[numberOfNeighbors];
+            sendingQueue = new String[numberOfNeighbors];
+            receivingQueue = new String[numberOfNeighbors];
             Console.WriteLine("Musician: " + position[0] + "," + position[1]);
             for (int i = 0; i < numberOfNeighbors; i++)
             {
@@ -41,19 +43,25 @@ namespace PP3
 
             for (int i = 0; i < numberOfNeighbors; i++)
             {
-                if (position[0] >= neighbors[i, 0] && position[1] >= neighbors[i, 1])
-                    queue[i] = position[0].ToString() + position[1].ToString() + neighbors[i, 0].ToString() + neighbors[i, 1].ToString();
-                else
-                    queue[i] = neighbors[i, 0].ToString() + neighbors[i, 1].ToString() + position[0].ToString() + position[1].ToString();
+                sendingQueue[i] = position[0].ToString() + position[1].ToString() + neighbors[i, 0].ToString() + neighbors[i, 1].ToString();
+                receivingQueue[i] = neighbors[i, 0].ToString() + neighbors[i, 1].ToString() + position[0].ToString() + position[1].ToString();
 
-                sender.SendMessage(queue[i], value.ToString());
-               
-                String rec = receiver.ReceiveMessage(queue[i]);
+                sender.SendMessage(sendingQueue[i], value.ToString());
+
+                //Thread.Sleep(1000);
+            }
+
+            Thread.Sleep(3000);
+        
+            for (int i = 0; i < numberOfNeighbors; i++)
+            {
+                String rec = receiver.ReceiveMessage(receivingQueue[i]);
+                Console.WriteLine(rec);
+
                 receivedValues[i] = Int32.Parse(rec);
             }
 
             int max = 0;
-            Console.WriteLine("Musician " + position[0] + ", " + position[1] + " received values: " + max);
             for (int i = 0; i < numberOfNeighbors; i++)
             {
                 Console.WriteLine("Musician " + position[0] + ", " + position[1] + " received values: " + receivedValues[i]);

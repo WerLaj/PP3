@@ -31,7 +31,7 @@ namespace PP3
             }
             //Console.WriteLine(" Press [enter] to exit.");
             //Console.ReadLine();
-            Thread.Sleep(500);
+            //Thread.Sleep(1000);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace PP3
                 //channel.BasicConsume(queue: "hello2", autoAck: true, consumer: consumer);
                 //Console.WriteLine(" Press [enter] to exit.");
                 //Console.ReadLine();
-                //Thread.Sleep(500);
+                Thread.Sleep(500);
             }
             return message;
         }
