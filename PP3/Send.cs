@@ -19,7 +19,7 @@ namespace PP3
                 var body = Encoding.UTF8.GetBytes(message);
 
                 channel.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: body);
-                Console.WriteLine(" [{0}] Sent {1}", q, message);
+                //Console.WriteLine(" [{0}] Sent {1}", q, message);
 
                 /*channel.QueueDeclare(queue: "hello2", durable: false, exclusive: false, autoDelete: false, arguments: null);
 

@@ -10,7 +10,7 @@ namespace PP3
     {
         Send sender;
         Receive receiver;
-        bool isPlaying;
+        bool done;
         int numberOfNeighbors;
         int[,] neighbors;
         int[] position;
@@ -22,7 +22,7 @@ namespace PP3
         {
             sender = new Send();
             receiver = new Receive();
-            isPlaying = false;
+            done = false;
             numberOfNeighbors = n;
             neighbors = _neighbors;
             position = pos;
@@ -35,9 +35,18 @@ namespace PP3
             }
         }
 
+        public void dowork()
+        {
+            //while(done == false)
+            {
+                sendMessageToAllNeighborsAndReceive();
+            }
+        }
+
         public void sendMessageToAllNeighborsAndReceive()
         {
             int value = randomValue();
+            int max = 0;
             Console.WriteLine("Musician " + position[0] + ", " + position[1] + ": " + value);
             int[] receivedValues = new int[numberOfNeighbors];
 
@@ -45,30 +54,62 @@ namespace PP3
             {
                 sendingQueue[i] = position[0].ToString() + position[1].ToString() + neighbors[i, 0].ToString() + neighbors[i, 1].ToString();
                 receivingQueue[i] = neighbors[i, 0].ToString() + neighbors[i, 1].ToString() + position[0].ToString() + position[1].ToString();
-
-                sender.SendMessage(sendingQueue[i], value.ToString());
-
-                //Thread.Sleep(1000);
             }
 
+            sendMessagesToNeightbours(value);
             Thread.Sleep(3000);
         
             for (int i = 0; i < numberOfNeighbors; i++)
             {
                 String rec = receiver.ReceiveMessage(receivingQueue[i]);
-                Console.WriteLine(rec);
-
                 receivedValues[i] = Int32.Parse(rec);
             }
 
-            int max = 0;
             for (int i = 0; i < numberOfNeighbors; i++)
             {
-                Console.WriteLine("Musician " + position[0] + ", " + position[1] + " received values: " + receivedValues[i]);
+                //Console.WriteLine("Musician " + position[0] + ", " + position[1] + " received values: " + receivedValues[i]);
                 if (receivedValues[i] > max)
                     max = receivedValues[i];
             }
             Console.WriteLine("Musician " + position[0] + ", " + position[1] + " maxvalue: " + max);
+
+            if(max <= value)
+            {
+                Console.WriteLine("----Musician " + position[0] + ", " + position[1] + " PLAYS THE CONCERT ");
+                Thread.Sleep(2000);
+                for (int i = 0; i < numberOfNeighbors; i++)
+                {
+                    sender.SendMessage(sendingQueue[i], "done");
+                }
+                done = true;
+            }
+            else
+            {
+                Console.WriteLine("----Musician " + position[0] + ", " + position[1] + " waits ");
+                Thread.Sleep(2500);
+                int k = 0;
+                int[,] temp = new int[numberOfNeighbors, 2];
+                for (int i = 0; i < numberOfNeighbors; i++)
+                {
+                    String rec = receiver.ReceiveMessage(receivingQueue[i]);
+                    if(rec == "")
+                    {
+                        temp[k, 0] = neighbors[i, 0];
+                        temp[k, 1] = neighbors[i, 1];
+                        k++;                 
+                    }
+                }
+                numberOfNeighbors = k;
+                Console.WriteLine("----Musician " + position[0] + ", " + position[1] + " has: " + numberOfNeighbors + " neighbours ");
+            }
+        }
+        
+        public void sendMessagesToNeightbours(int value)
+        {
+            for (int i = 0; i < numberOfNeighbors; i++)
+            {
+                sender.SendMessage(sendingQueue[i], value.ToString());
+            }
         }
 
         public int randomValue()

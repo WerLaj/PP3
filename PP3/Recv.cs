@@ -22,7 +22,7 @@ namespace PP3
                 {
                     var body = ea.Body;
                     message = Encoding.UTF8.GetString(body);
-                    Console.WriteLine(" [{0}] Received {1}", q, message);
+                    //Console.WriteLine(" [{0}] Received {1}", q, message);
                 };
                 channel.BasicConsume(queue: q, autoAck: true, consumer: consumer);
                 //channel.BasicConsume(queue: "hello2", autoAck: true, consumer: consumer);

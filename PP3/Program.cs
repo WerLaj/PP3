@@ -57,7 +57,7 @@ namespace PP3
             for (i = 0; i < numberOfMusicians; i++)
             {
                 
-                musiciansThreads[i] = new Thread(musicians[i].sendMessageToAllNeighborsAndReceive);
+                musiciansThreads[i] = new Thread(musicians[i].dowork);
                 musiciansThreads[i].Start();
             }
 
