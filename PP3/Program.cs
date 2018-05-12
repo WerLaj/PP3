@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Messages;
 using System.Collections.Generic;
+using RabbitMQ.Client;
 
 namespace PP3
 {
@@ -11,6 +12,7 @@ namespace PP3
     {
         public static Musician[] musicians;
         public static Thread[] musiciansThreads;
+        public static int[] values = new int[] { 372, 844, 411, 258, 413,  843 };
 
         public static void Main()
         {
@@ -39,10 +41,15 @@ namespace PP3
             {
                 int[,] neighbors = new int[numberOfMusicians, 2];
                 int k = 0;
-                int value = randomValue();
+                //int value = randomValue();
+                int value = values[i];
                 List<string> sendingQueue = new List<string>();
                 List<string> receivingQueue = new List<string>();
                 int[] pos = { positions[i, 0], positions[i, 1] };
+                var factory = new ConnectionFactory() { HostName = "localhost" };
+                var connection = factory.CreateConnection();
+                var inChannel = connection.CreateModel();
+                var outChannel = connection.CreateModel();
                 //Console.WriteLine(pos[0] + ", " + pos[1]);
 
                 for (int j = 0; j < numberOfMusicians; j++)
@@ -62,7 +69,7 @@ namespace PP3
                         }
                     }
                 }
-                musicians[i] = new Musician(k, neighbors, pos, sendingQueue, receivingQueue, value);
+                musicians[i] = new Musician(k, neighbors, pos, sendingQueue, receivingQueue, value, factory, connection, inChannel, outChannel);
             }
 
             for (i = 0; i < numberOfMusicians; i++)
