@@ -41,8 +41,8 @@ namespace PP3
             {
                 int[,] neighbors = new int[numberOfMusicians, 2];
                 int k = 0;
-                //int value = randomValue();
-                int value = values[i];
+                int value = randomValue();
+                //int value = values[i];
                 List<string> sendingQueue = new List<string>();
                 List<string> receivingQueue = new List<string>();
                 int[] pos = { positions[i, 0], positions[i, 1] };

@@ -11,14 +11,12 @@ namespace PP3
     class Musician
     {
         int numberOfNeighbors;
-        int roundNumberOfNeighbors;
         int[,] neighbors;
-        int[,] roundNeighbors;
         int[] position;
         List<string> sendingQueue;
         List<string> receivingQueue;
-        List<string> roundSendingQueue;
         List<string> winners;
+        List<string> losers;
         int randomValue;
         int max = 0;
         ConnectionFactory factory;
@@ -31,19 +29,17 @@ namespace PP3
         public Musician(int n, int[,] neigh, int[] pos, List<string> send, List<string> recv, int v, ConnectionFactory f, IConnection c, IModel chI, IModel chO)
         {
             numberOfNeighbors = n;
-            roundNumberOfNeighbors = n;
             neighbors = neigh;
-            roundNeighbors = neigh;
             position = pos;
             sendingQueue = send;
             receivingQueue = recv;
-            roundSendingQueue = send;
             randomValue = v;
             factory = f;
             connection = c;
             inChannel = chI;
             outChannel = chO;
             winners = new List<string>();
+            losers = new List<string>();
             Console.WriteLine("[{0}, {1}] : {2}; neigh = {3}", position[0], position[1], randomValue, numberOfNeighbors);
         }
 
@@ -72,7 +68,7 @@ namespace PP3
                 }
 
                 var body = Encoding.UTF8.GetBytes(message);
-                Console.WriteLine(" [{0}] Sent {1}", queue, message); 
+                //Console.WriteLine(" [{0}] Sent {1}", queue, message); 
                 lock (outChannel)
                 {
                     outChannel.BasicPublish(exchange: "", routingKey: queue, basicProperties: null, body: body);
@@ -97,7 +93,7 @@ namespace PP3
                 {
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
-                    Console.WriteLine(" [{0}] Received {1}", queue, message);
+                    //Console.WriteLine(" [{0}] Received {1}", queue, message);
                     handleIncomingMessages(message, queue);
                     
                 };
@@ -120,11 +116,19 @@ namespace PP3
                 }
                 else if (m == Message.winner)
                 {
-                    if (loser == true) { }//!!!!!!!!!!!!!!!!!!!!!!!!!-
-                    stageW++;
-                    Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
-                    winners.Add(q.Substring(0, 2));
-                    loser = true;
+                    stateN = 0;
+                    if(loser == true)
+                    {
+                        Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
+                        winners.Add(q.Substring(0, 2));
+                    }
+                    else
+                    {
+                        stageW++;
+                        Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
+                        winners.Add(q.Substring(0, 2));
+                        loser = true;
+                    }
                 }
                 else if (m == Message.notloser)
                 {
@@ -135,36 +139,37 @@ namespace PP3
                 {
                     stageL++;
                     Console.WriteLine("[{0}, {1}] {2}, {3} is loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
-                    if (loser == false)
+                    losers.Add(q.Substring(0, 2));
+                    /*if (loser == false)
                     {
                         //roundSendingQueue.Remove(q);
                         removeOneNeighbor(roundNeighbors, Int32.Parse(q.Substring(0, 1)), Int32.Parse(q.Substring(1, 1)));
                         roundNumberOfNeighbors--;
-                    }
+                    }*/
                 }
                 else if (m.Contains(Message.number))
                 {
                     int n = Int32.Parse(m.Substring((Message.number).Length));
                     stateN++;
+                    if (losers.Contains(q.Substring(0, 2)))
+                        losers.Remove(q.Substring(0, 2));
                     if (n > max)
                         max = n;
                 }
                 else if (m == Message.finished)
                 {
-                    roundSendingQueue.Remove(q + position[0] + position[1]);
-                    removeOneNeighbor(roundNeighbors, Int32.Parse(q.Substring(0, 1)), Int32.Parse(q.Substring(1, 1)));
                     sendingQueue.Remove(q + position[0] + position[1]);
                     removeOneNeighbor(neighbors, Int32.Parse(q.Substring(0, 1)), Int32.Parse(q.Substring(1, 1)));
                     numberOfNeighbors--;
-                    roundNumberOfNeighbors--;
                     winners.Remove(q.Substring(0, 2));
+                    Console.WriteLine("[{0}, {1}] {2}, {3} has finished. Winners left: {4}, losers: {5}, neighbors: {6}", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1), winners.Count, losers.Count, numberOfNeighbors);
 
                     if (winners.Count == 0)
                     {
-                        if (roundNumberOfNeighbors == 0)
+                        if (numberOfNeighbors == 0)
                             winner = true;
                         else
-                            foreach (string s in roundSendingQueue)
+                            foreach (string s in sendingQueue)
                             {
                                 send(s, Message.number + randomValue.ToString());
                             }
@@ -172,86 +177,80 @@ namespace PP3
                     loser = false;
                 }
 
-                /*if(loser == false && winner == false)
+                if (stateN == numberOfNeighbors - losers.Count/*&& loser == false*/)
                 {
-                    if (roundNumberOfNeighbors == 0)
-                        winner = true;
-                    else
-                        foreach (string s in roundSendingQueue)
-                        {
-                            send(s, Message.number + randomValue.ToString());
-                        }
-                } */
-
-                if (stateN == roundNumberOfNeighbors && loser == false)
-                {
-                    if (max <= randomValue)
+                    if (max <= randomValue && winners.Count == 0)
                     {
                         Console.WriteLine("[{0}, {1}] I'm winner", position[0], position[1]);
                         foreach (string s in sendingQueue)
                         {
                             send(s, Message.winner);
-                            winner = true;
                         }
+                        winner = true;
+
                     }
                     else
                     {
                         //Console.WriteLine("{0}, {1} I'm NOT winner", position[0], position[1]);
-                        foreach (string s in roundSendingQueue)
+                        foreach (string s in sendingQueue)
                         {
-                            send(s, Message.notwinner);
+                            if(!losers.Contains(s))
+                                send(s, Message.notwinner);
                         }
                     }
                     stateN = 0;
                     max = 0;
-                    round++;
+                    //round++;
                 }
 
-                if (stageW == roundNumberOfNeighbors && round == 1)
+                if (stageW == numberOfNeighbors - losers.Count/*&& round == 1*/)
                 {
                     if (loser == true)
                     {
-                        foreach (string s in roundSendingQueue)
+                        foreach (string s in sendingQueue)
                         {
-                            send(s, Message.loser);
+                            if (!losers.Contains(s))
+                                send(s, Message.loser);
                         }
                     }
                     else
                     {
-                        foreach (string s in roundSendingQueue)
+                        foreach (string s in sendingQueue)
                         {
-                            send(s, Message.notloser);
+                            if (!losers.Contains(s))
+                                send(s, Message.notloser);
                         }
                     }
-                    round++;
+                    //round++;
                     stageW = 0;
                 }
                 
-                if(stageL == roundNumberOfNeighbors && round == 2)
+                if(stageL == numberOfNeighbors - losers.Count /*&& round == 2*/) // >=
                 {
                     if(loser == false)
                     {
-                        if (roundNumberOfNeighbors == 0)
+                        if (numberOfNeighbors - losers.Count == 0)
                             winner = true;
                         else
-                            foreach (string s in roundSendingQueue)      
+                            foreach (string s in sendingQueue)      
                             {
-                                send(s, Message.number + randomValue.ToString());
+                                if(!losers.Contains(s))
+                                    send(s, Message.number + randomValue.ToString());
                             }
                     }
                     stageL = 0;
-                    round = 0;
+                    //round = 0;
                 }
 
-                if (winner == true && winners.Count == 0)
+                if (winner == true /*&& winners.Count == 0*/)
                 {
                     Console.WriteLine("[{0}, {1}] ----------- PLAYING -----------", position[0], position[1]);
                     Thread.Sleep(5000);
-                    Console.WriteLine("[{0}, {1}] ----------- FINISHED ----------", position[0], position[1]);
-                    foreach (string s in roundSendingQueue)
+                    foreach (string s in sendingQueue)
                     {
                         send(s, Message.finished);
                     }
+                    Console.WriteLine("[{0}, {1}] ----------- FINISHED ----------", position[0], position[1]);
                     done = true;
                 }
             }
