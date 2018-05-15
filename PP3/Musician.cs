@@ -116,17 +116,12 @@ namespace PP3
                 }
                 else if (m == Message.winner)
                 {
-                    stateN = 0;
-                    if(loser == true)
-                    {
-                        Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
-                        winners.Add(q.Substring(0, 2));
-                    }
-                    else
+                    //stateN = 0;//---
+                    Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
+                    winners.Add(q.Substring(0, 2));
+                    if (loser == false)
                     {
                         stageW++;
-                        Console.WriteLine("[{0}, {1}] {2}, {3} is winner. I'm loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
-                        winners.Add(q.Substring(0, 2));
                         loser = true;
                     }
                 }
@@ -137,7 +132,7 @@ namespace PP3
                 }
                 else if (m == Message.loser)
                 {
-                    stageL++;
+                    stageL++;//---
                     Console.WriteLine("[{0}, {1}] {2}, {3} is loser", position[0], position[1], q.Substring(0, 1), q.Substring(1, 1));
                     losers.Add(q.Substring(0, 2));
                     /*if (loser == false)
@@ -173,13 +168,13 @@ namespace PP3
                             {
                                 send(s, Message.number + randomValue.ToString());
                             }
-                    }
-                    loser = false;
+                        loser = false;
+                    }           
                 }
 
-                if (stateN == numberOfNeighbors - losers.Count/*&& loser == false*/)
+                if (stateN == numberOfNeighbors - losers.Count /*&& loser == false*/)
                 {
-                    if (max <= randomValue && winners.Count == 0)
+                    if (max <= randomValue /*&& winners.Count == 0*/)//---
                     {
                         Console.WriteLine("[{0}, {1}] I'm winner", position[0], position[1]);
                         foreach (string s in sendingQueue)
@@ -187,7 +182,6 @@ namespace PP3
                             send(s, Message.winner);
                         }
                         winner = true;
-
                     }
                     else
                     {
@@ -210,7 +204,9 @@ namespace PP3
                         foreach (string s in sendingQueue)
                         {
                             if (!losers.Contains(s))
+                            {
                                 send(s, Message.loser);
+                            }
                         }
                     }
                     else
@@ -218,7 +214,9 @@ namespace PP3
                         foreach (string s in sendingQueue)
                         {
                             if (!losers.Contains(s))
+                            {
                                 send(s, Message.notloser);
+                            }
                         }
                     }
                     //round++;
@@ -242,10 +240,10 @@ namespace PP3
                     //round = 0;
                 }
 
-                if (winner == true /*&& winners.Count == 0*/)
+                if (winner == true && winners.Count == 0)
                 {
                     Console.WriteLine("[{0}, {1}] ----------- PLAYING -----------", position[0], position[1]);
-                    Thread.Sleep(5000);
+                    Thread.Sleep(2000);
                     foreach (string s in sendingQueue)
                     {
                         send(s, Message.finished);
